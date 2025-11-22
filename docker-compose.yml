@@ -403,6 +403,43 @@ services:
       - homepage.widget.type=jellyfin
       - homepage.widget.url=http://jellyfin:8096/jellyfin
       - homepage.widget.key=${JELLYFIN_API_KEY}
+  plex:
+    image: plexinc/pms-docker:latest
+    container_name: "plex"
+    environment:
+      - PUID=${USER_ID}
+      - PGID=${GROUP_ID}
+      - VERSION=docker
+      - ADVERTISE_IP=${PLEX_ADVERTISE_IP}
+      - TZ=${TIMEZONE}
+      - PLEX_CLAIM=${PLEX_CLAIM}
+    volumes:
+      - ${CONFIG_ROOT:-.}/plex:/config
+      - ${CONFIG_ROOT:-.}/plex/transcode:/transcode
+      - ${DATA_ROOT}:/data
+    ports:
+      - "32400:32400/tcp"
+      - "32410:32410/udp"
+      - "32412:32412/udp"
+      - "32413:32413/udp"
+      - "32414:32414/udp"
+      - "32469:32469/tcp"
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.plex.rule=(Host(`${HOSTNAME}`) && PathPrefix(`/plex`))
+      - traefik.http.routers.plex.tls=true
+      - traefik.http.routers.plex.tls.certresolver=myresolver
+      - traefik.http.services.plex.loadbalancer.server.port=8097
+      - homepage.group=Media
+      - homepage.name=Plex
+      - homepage.icon=plex.png
+      - homepage.href=/plex
+      - homepage.description=Media server
+      - homepage.weight=4
+      - homepage.widget.type=plex
+      - homepage.widget.url=http://plex:8097/plex
+      - homepage.widget.key=${JELLYFIN_API_KEY}
   calibre-web:
     image: lscr.io/linuxserver/calibre-web:latest
     container_name: calibre-web
