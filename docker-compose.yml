@@ -18,6 +18,7 @@ services:
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
       - --entrypoints.web-secure.address=:443
+      - --entrypoints.web-secure.http.middlewares=${TRAEFIK_AUTH_MIDDLEWARE:-}
       - --entrypoints.web.http.redirections.entryPoint.to=web-secure
       - --entrypoints.web.http.redirections.entryPoint.scheme=https
       - --entrypoints.web.http.redirections.entrypoint.permanent=true
@@ -40,6 +41,9 @@ services:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 1m
       retries: 10
+    labels:
+      - traefik.enable=true
+      - traefik.http.middlewares.nas-auth.basicauth.users=${TRAEFIK_AUTH_USERS:-admin:$$apr1$$4FDR9Kyc$$uFT9fY65/sqRqAxWNudd91}
   sonarr:
     image: lscr.io/linuxserver/sonarr
     container_name: sonarr

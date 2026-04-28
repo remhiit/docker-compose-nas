@@ -7,13 +7,33 @@ set -euo pipefail
 PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_ROOT"
 
-if [ -f .env ]; then
-  set -a
-  . ./.env
-  set +a
+if [ -n "${SUDO_USER:-}" ] && [ "${SUDO_USER}" != "root" ]; then
+  echo "This script was started from a sudo session (SUDO_USER=${SUDO_USER})." >&2
+  echo "Please run it as your regular user (without sudo), for example:" >&2
+  echo "  bash ./update-config.sh" >&2
+  exit 1
 fi
 
+function read_env_file_value {
+  local key="$1"
+  local env_file="$2"
+  local value=""
+
+  if [ -f "$env_file" ]; then
+    value=$(sed -n "s/^${key}=//p" "$env_file" | tail -n 1)
+    value="${value#\"}"
+    value="${value%\"}"
+    value="${value#\'}"
+    value="${value%\'}"
+  fi
+
+  printf '%s' "$value"
+}
+
+CONFIG_ROOT="${CONFIG_ROOT:-$(read_env_file_value CONFIG_ROOT .env)}"
 CONFIG_ROOT="${CONFIG_ROOT:-.}"
+
+WAIT_TIMEOUT_SECONDS="${WAIT_TIMEOUT_SECONDS:-$(read_env_file_value WAIT_TIMEOUT_SECONDS .env)}"
 WAIT_TIMEOUT_SECONDS="${WAIT_TIMEOUT_SECONDS:-120}"
 
 function wait_for_file {
