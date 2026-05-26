@@ -35,15 +35,15 @@ services:
     volumes:
       - ${CONFIG_ROOT:-.}/letsencrypt:/letsencrypt
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    labels:
+      - traefik.enable=true
+      - traefik.http.middlewares.nas-auth.basicauth.users=${TRAEFIK_AUTH_USERS:-admin:$$apr1$$4FDR9Kyc$$uFT9fY65/sqRqAxWNudd91}
     extra_hosts:
       - host.docker.internal:172.17.0.1
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 1m
       retries: 10
-    labels:
-      - traefik.enable=true
-      - traefik.http.middlewares.nas-auth.basicauth.users=${TRAEFIK_AUTH_USERS:-admin:$$apr1$$4FDR9Kyc$$uFT9fY65/sqRqAxWNudd91}
   sonarr:
     image: lscr.io/linuxserver/sonarr
     container_name: sonarr

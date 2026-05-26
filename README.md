@@ -122,8 +122,8 @@ If you want to show Jellyfin information in the homepage, create it in Jellyfin 
 | `PIA_LOCAL_NETWORK`            | PIA local network                                                                                                                                                                                      | `192.168.0.0/16`                                 |
 | `HOSTNAME`                     | Hostname of the NAS, could be a local IP or a domain name                                                                                                                                              | `localhost`                                      |
 | `BASE_HOSTNAME`                | Base hostname of the NAS, useful if hostname is a subdomain                                                                                                                                            | `localhost`                                      |
-| `TRAEFIK_AUTH_MIDDLEWARE`      | Optional - Global middleware attached to Traefik HTTPS entrypoint. Set to `nas-auth@docker` to require login on all exposed apps                                                                     |                                                  |
-| `TRAEFIK_AUTH_USERS`           | Optional - BasicAuth users list for Traefik middleware (`user:hash`). Use an Apache MD5 or bcrypt hash                                                                                                | `admin:$apr1$4FDR9Kyc$uFT9fY65/sqRqAxWNudd91`    |
+| `TRAEFIK_AUTH_MIDDLEWARE`      | Optional - Global middleware attached to Traefik HTTPS entrypoint. Set to `nas-auth@docker` to require login on all exposed apps                                                                     | *(empty / disabled)*                              |
+| `TRAEFIK_AUTH_USERS`           | Optional - BasicAuth users list for Traefik middleware (`user:hash`). Use an Apache MD5 or bcrypt hash; escape `$` as `$$` in `.env`                                                                 | `admin:$$apr1$$4FDR9Kyc$$uFT9fY65/sqRqAxWNudd91`  |
 | `ADGUARD_HOSTNAME`             | Optional - AdGuard Home hostname used, if enabled                                                                                                                                                      |                                                  |
 | `ADGUARD_USERNAME`             | Optional - AdGuard Home username to show details in the homepage, if enabled                                                                                                                           |                                                  |
 | `ADGUARD_PASSWORD`             | Optional - AdGuard Home password to show details in the homepage, if enabled                                                                                                                           |                                                  |
@@ -340,7 +340,7 @@ openssl passwd -apr1 "your-password"
 ```
 
 ```env
-TRAEFIK_AUTH_USERS=admin:$apr1$...$...
+TRAEFIK_AUTH_USERS=admin:$$apr1$$...$$...
 ```
 
 3. Restart Traefik and your stack:
