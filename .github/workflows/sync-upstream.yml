@@ -1,0 +1,45 @@
+name: Sync fork and open update PR
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-and-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sync master with upstream
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh api -X POST "repos/${{ github.repository }}/merge-upstream" -f branch=master
+
+      - name: Fetch updated branches
+        run: git fetch origin master home_nas
+
+      - name: Check for commits pending in home_nas
+        id: diff
+        run: echo "count=$(git rev-list --count origin/home_nas..origin/master)" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure a master -> home_nas PR exists
+        if: steps.diff.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          existing=$(gh pr list --base home_nas --head master --state open --json number --jq '.[0].number')
+          if [ -z "$existing" ]; then
+            gh pr create \
+              --base home_nas \
+              --head master \
+              --title "Sync upstream changes into home_nas" \
+              --body "Automated PR: new commits were pulled from upstream into \`master\`. Merge this to bring them into \`home_nas\`."
+          else
+            echo "PR #$existing already open from master into home_nas; new commits will appear on it automatically."
+          fi
